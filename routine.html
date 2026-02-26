@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>스케줄러</title>
+<title>ipTIME 스케줄러</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
   *{margin:0;padding:0;box-sizing:border-box}
+  html,body{background:#f5f6f8}
   :root{
     --bg:#f5f6f8;--card:#fff;--primary:#4a7c59;--pl:#e8f0eb;--pd:#3a6247;
     --accent:#e8913a;--al:#fff4e8;--danger:#d9534f;--dl:#fdecea;
@@ -14,15 +15,25 @@
     --text:#1a1a2e;--ts:#6b7280;--border:#e5e7eb;
     --sh:0 1px 3px rgba(0,0,0,.06);--sh-md:0 4px 12px rgba(0,0,0,.08);--sh-lg:0 12px 40px rgba(0,0,0,.15);
     --r:14px;--rs:8px;
+    --green-bold:#1b6e2d;--green-bold-hover:#155a24;
   }
-  body{font-family:'Noto Sans KR',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:24px}
+  body{font-family:'Noto Sans KR',-apple-system,sans-serif;background:var SVG_EDIT_SMALL='<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M16.4124 5.75744C16.8218 5.37069 17.4904 5.37069 17.8997 5.75744L19.133 6.92272C19.5402 7.30268 19.5455 7.9431 19.1366 8.32457L17.6997 9.68213L14.9765 7.10931L16.4124 5.75744ZM13.8764 8.14506L13.826 8.19247L4.5531 16.962V19.5326H7.2737L16.6014 10.7197L13.8764 8.14506ZM18.9979 4.71984C17.9822 3.76018 16.3305 3.76005 15.3146 4.71947L12.7285 7.15421L3 16.3546V21H7.91701L20.2296 9.36705C21.2568 8.40694 21.2568 6.84361 20.2295 5.8835L18.9979 4.71984Z" fill="currentColor"/></svg>';
+
+document.querySelectorAll('.routine-card').forEach(function(c){
+  var ei=document.createElement('div');ei.className='edit-icon';ei.innerHTML=SVG_EDIT_SMALL;
+  c.insertBefore(ei,c.firstChild);
+});
+
+var(--bg);color:var(--text);min-height:100vh;padding:24px}
   .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
   .header h1{font-size:22px;font-weight:700}
   .header-actions{display:flex;gap:8px}
-  .btn{border:none;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;padding:8px 16px;border-radius:var(--rs);transition:all .15s}
-  .btn-primary{background:var(--primary);color:#fff;width:36px;height:36px;padding:0;justify-content:center;font-size:18px}.btn-primary:hover{background:var(--pd)}
-  .btn-ghost{background:transparent;color:var(--ts);border:1px solid var(--border)}.btn-ghost:hover{background:#f3f4f6}
-  .stats{display:flex;gap:12px;margin-bottom:24px;position:sticky;top:0;z-index:50;padding:12px 0;background:var(--bg)}
+  .hdr-btn{width:36px;height:36px;padding:0;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:var(--rs);background:transparent;color:var(--text);cursor:pointer;font-family:inherit;font-size:18px;transition:all .15s}
+  .hdr-btn:hover{background:#f3f4f6}
+  .hdr-btn.green{background:#1b6e2d;color:#fff;border-color:#1b6e2d}
+  .hdr-btn.green:hover{background:#155a24}
+  .hdr-btn.disabled{pointer-events:none}
+  .stats{display:flex;gap:12px;margin-bottom:24px;position:sticky;top:0;z-index:50;padding:12px 0;background:#f5f6f8}
   .stat-chip{background:var(--card);border-radius:var(--rs);padding:10px 16px;font-size:13px;color:var(--ts);box-shadow:var(--sh);display:flex;align-items:center;gap:8px;cursor:pointer;transition:all .15s;user-select:none}
   .stat-chip:hover{box-shadow:var(--sh-md)}
   .stat-chip.active{background:var(--pl);color:var(--primary);box-shadow:var(--sh-md)}
@@ -96,8 +107,15 @@
   .routine-card.bulk-mode .card-footer{padding-left:40px}
   .routine-card .bulk-check{position:absolute;top:20px;left:14px;width:20px;height:20px;border:2px solid var(--border);border-radius:6px;background:var(--card);cursor:pointer;display:none;align-items:center;justify-content:center;font-size:11px;transition:all .15s;z-index:2}
   .routine-card.bulk-mode .bulk-check{display:flex}
+  .routine-card .edit-icon{position:absolute;top:20px;left:14px;width:20px;height:20px;border-radius:6px;background:var(--pl);color:var(--primary);display:none;align-items:center;justify-content:center;z-index:2}
+  .routine-card.edit-mode .edit-icon{display:flex}
+  .routine-card.edit-mode .card-top{padding-left:40px}
+  .routine-card.edit-mode .card-body{padding-left:40px}
+  .routine-card.edit-mode .card-footer{padding-left:40px}
   .routine-card .bulk-check.checked{background:var(--primary);border-color:var(--primary);color:#fff}
   .routine-card.bulk-selected{border-color:var(--border)}
+  .routine-card.edit-mode{cursor:pointer}
+  .routine-card.edit-mode:hover{box-shadow:var(--sh-md);background:#f0fdf4}
   .card-top{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 0}
   .card-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .priority-num{font-size:13px;font-weight:700;color:#b0b5bf;flex-shrink:0;font-variant-numeric:tabular-nums}
@@ -119,7 +137,6 @@
   .card-body{padding:14px 20px 0;cursor:pointer}
   .schedule-row{display:flex;align-items:center;gap:16px;margin-bottom:12px;flex-wrap:wrap}
   .schedule-info{display:flex;align-items:center;gap:6px}
-  .schedule-label{font-size:11px;color:var(--ts);font-weight:500;letter-spacing:.2px}
   .day-pills{display:flex;gap:3px}
   .day-pill{width:24px;height:24px;border-radius:50%;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;background:#f3f4f6;color:#c9cdd4}
   .day-pill.active{background:var(--primary);color:#fff}
@@ -166,10 +183,12 @@
   .repeat-tabs{display:flex;gap:4px;background:#f3f4f6;border-radius:8px;padding:3px;margin-bottom:14px}
   .repeat-tab{flex:1;padding:6px 0;text-align:center;border:none;background:transparent;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--ts);transition:all .15s}
   .repeat-tab.active{background:var(--card);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.08);font-weight:600}
-  .day-selector{display:flex;gap:6px;margin-bottom:10px}
-  .day-btn{width:38px;height:38px;border-radius:50%;border:2px solid var(--border);background:transparent;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--ts);transition:all .15s}
-  .day-btn.selected{border-color:var(--primary);background:var(--primary);color:#fff}
-  .day-btn:hover:not(.selected){border-color:var(--primary);color:var(--primary)}
+  .day-selector{display:flex;margin-bottom:10px}
+  .day-btn{flex:1;height:36px;border:1px solid var(--border);background:var(--card);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--ts);transition:all .15s;margin-left:-1px}
+  .day-btn:first-child{border-radius:6px 0 0 6px;margin-left:0}
+  .day-btn:last-child{border-radius:0 6px 6px 0}
+  .day-btn.selected{border-color:var(--primary);background:var(--pl);color:var(--primary);z-index:1;position:relative}
+  .day-btn:hover:not(.selected){background:#f3f4f6;color:var(--text)}
   .day-presets{display:flex;gap:6px;margin-bottom:10px}
   .day-preset-btn{padding:4px 12px;border:1.5px solid var(--border);border-radius:20px;background:transparent;font-size:11px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--ts);transition:all .15s}
   .day-preset-btn:hover{border-color:var(--primary);color:var(--primary);background:var(--pl)}
@@ -186,7 +205,7 @@
   .date-preset-btn.active{border-color:var(--primary);background:var(--primary);color:#fff}
   .schedule-summary{margin-top:16px;padding:12px 14px;border-radius:10px;background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border:1px solid rgba(74,124,89,.15);display:flex;align-items:flex-start;gap:10px;transition:all .3s ease;min-height:44px}
   .schedule-summary.empty{background:#f9fafb;border-color:var(--border)}
-  .schedule-summary-icon{font-size:16px;flex-shrink:0;line-height:1.3}
+  .schedule-summary-icon{display:none}
   .schedule-summary-text{font-size:12.5px;font-weight:500;color:var(--text);line-height:1.5}
   .schedule-summary.empty .schedule-summary-text{color:var(--ts)}
   .summary-highlight{color:var(--primary);font-weight:700}
@@ -249,8 +268,8 @@
   .svc-select-trigger .trigger-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
   .svc-select-trigger .trigger-text{flex:1;text-align:left}
   .svc-select-trigger .trigger-placeholder{color:#9ca3af}
-  .svc-select-trigger .trigger-arrow{font-size:10px;color:#9ca3af;transition:transform .15s}
-  .svc-select-trigger.open .trigger-arrow{transform:rotate(180deg)}
+  .svc-select-trigger .trigger-arrow{font-size:18px;color:#9ca3af;transition:transform .15s;transform:rotate(90deg);line-height:1}
+  .svc-select-trigger.open .trigger-arrow{transform:rotate(270deg)}
   .svc-dropdown{position:absolute;top:100%;left:0;right:0;background:var(--card);border:1.5px solid var(--primary);border-top:none;border-radius:0 0 var(--rs) var(--rs);box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:50;max-height:280px;overflow-y:auto;display:none}
   .svc-dropdown.show{display:block}
   .svc-dropdown-group{padding:6px 0}
@@ -279,10 +298,17 @@
 </div>
 <div class="tl-tooltip" id="tooltip"></div>
 
-<div class="header"><h1>스케줄러</h1><div class="header-actions"><button class="btn btn-ghost" id="bulkBtn" onclick="toggleBulkDelete()">삭제</button><button class="btn btn-primary" onclick="openModal('add')">＋</button></div></div>
+<div class="header">
+  <h1>시스템 스케줄러</h1>
+  <div class="header-actions" id="headerActions">
+    <button class="hdr-btn" id="btnDel"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M14.5 3V4H20V5.7H19V19C19 20.1 18.1 21 17 21H7C5.9 21 5 20.1 5 19V5.7H4V4H9.5V3H14.5ZM6.7 19.3H17.3V5.7H6.7V19.3ZM9 9H10.7V16H9V9ZM15 9H13.3V16H15V9Z" fill="currentColor"/></svg></button>
+    <button class="hdr-btn" id="btnEdit"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M16.4124 5.75744C16.8218 5.37069 17.4904 5.37069 17.8997 5.75744L19.133 6.92272C19.5402 7.30268 19.5455 7.9431 19.1366 8.32457L17.6997 9.68213L14.9765 7.10931L16.4124 5.75744ZM13.8764 8.14506L13.826 8.19247L4.5531 16.962V19.5326H7.2737L16.6014 10.7197L13.8764 8.14506ZM18.9979 4.71984C17.9822 3.76018 16.3305 3.76005 15.3146 4.71947L12.7285 7.15421L3 16.3546V21H7.91701L20.2296 9.36705C21.2568 8.40694 21.2568 6.84361 20.2295 5.8835L18.9979 4.71984Z" fill="currentColor"/></svg></button>
+    <button class="hdr-btn" id="btnAdd" style="font-size:18px">＋</button>
+  </div>
+</div>
 
 <div class="stats">
-  <div class="stat-chip active" onclick="filterCards('all',this)"><span class="num">6</span> 전체</div>
+  <div class="stat-chip active" onclick="filterCards('all',this)"><span class="num">5</span> 전체</div>
   <div class="stat-chip" onclick="filterCards('running',this)"><span class="num" style="color:var(--primary)">1</span> 실행 중</div>
   <div class="stat-chip" onclick="filterCards('scheduled',this)"><span class="num" style="color:var(--sched)">3</span> 대기</div>
   <div class="stat-chip" onclick="filterCards('oneshot',this)"><span class="num" style="color:var(--accent)">1</span> 1회성</div>
@@ -293,97 +319,81 @@
 
   <div class="routine-card-wrap" draggable="true">
   <div class="outer-drag-handle" title="드래그하여 순서 변경">⠿</div>
-  <div class="routine-card" id="card1" data-status="running">
+  <div class="routine-card" id="card1" data-status="scheduled">
     <div class="bulk-check" onclick="toggleBulkCheck(this)"><span>✓</span></div>
     <div class="swipe-wrapper"><div class="swipe-bg">삭제</div><div class="swipe-inner">
-    <div class="card-top"><div class="card-meta"><span class="priority-num">1</span><span class="status-badge running">실행 중</span><span class="type-badge">매주</span></div><button class="card-toggle on" onclick="this.classList.toggle('on')"></button></div>
+    <div class="card-top"><div class="card-meta"><span class="priority-num">1</span><span class="status-badge scheduled">대기 중</span><span class="type-badge">매주</span></div><button class="card-toggle on" onclick="this.classList.toggle('on')"></button></div>
     <div class="card-body" onclick="toggleActions('card1')">
-      <div class="schedule-row"><div class="schedule-info"><div class="day-pills"><span class="day-pill">일</span><span class="day-pill active">월</span><span class="day-pill active">화</span><span class="day-pill active">수</span><span class="day-pill active">목</span><span class="day-pill active">금</span><span class="day-pill">토</span></div></div><div class="schedule-info"><div class="time-range">09:00 <span style="color:#9ca3af">~</span> 18:00</div></div></div>
-      <div class="action-summary"><span class="summary-text"><strong>WireGuard 클라이언트</strong> <span class="compact-target">7회사</span> <strong>활성화</strong></span><span class="count-badge">1건</span><span class="chevron">▼</span></div>
-      <div class="action-detail"><div class="compact-list"><div class="compact-item"><span class="compact-dot" style="background:var(--primary)"></span>WireGuard 클라이언트<span class="compact-target">7회사</span><span class="compact-action">활성화</span></div></div></div>
-    </div>
-    <div class="card-footer"><span>마지막 실행: 오늘 09:00</span><div class="card-footer-actions"><button class="edit-btn" onclick="openModal('edit',1)">수정</button></div></div>
-    </div></div>
-  </div>
-  </div>
-
-  <div class="routine-card-wrap" draggable="true">
-  <div class="outer-drag-handle" title="드래그하여 순서 변경">⠿</div>
-  <div class="routine-card" id="card2" data-status="scheduled">
-    <div class="bulk-check" onclick="toggleBulkCheck(this)"><span>✓</span></div>
-    <div class="swipe-wrapper"><div class="swipe-bg">삭제</div><div class="swipe-inner">
-    <div class="card-top"><div class="card-meta"><span class="priority-num">2</span><span class="status-badge scheduled">대기 중</span><span class="type-badge">매주</span></div><button class="card-toggle on" onclick="this.classList.toggle('on')"></button></div>
-    <div class="card-body" onclick="toggleActions('card2')">
-      <div class="schedule-row"><div class="schedule-info"><div class="day-pills"><span class="day-pill active">일</span><span class="day-pill">월</span><span class="day-pill">화</span><span class="day-pill">수</span><span class="day-pill">목</span><span class="day-pill">금</span><span class="day-pill active">토</span></div></div><div class="schedule-info"><div class="time-range">00:00 <span style="color:#9ca3af">~</span> 23:59</div></div></div>
-      <div class="action-summary"><span class="summary-text"><strong>WireGuard 클라이언트</strong> <span class="compact-target">1405집</span> <strong>활성화</strong></span><span class="count-badge">1건</span><span class="chevron">▼</span></div>
-      <div class="action-detail"><div class="compact-list"><div class="compact-item"><span class="compact-dot" style="background:var(--primary)"></span>WireGuard 클라이언트<span class="compact-target">1405집</span><span class="compact-action">활성화</span></div></div></div>
-    </div>
-    <div class="card-footer"><span>다음 실행: 토요일</span><div class="card-footer-actions"><button class="edit-btn" onclick="openModal('edit',2)">수정</button></div></div>
-    </div></div>
-  </div>
-  </div>
-
-  <div class="routine-card-wrap" draggable="true">
-  <div class="outer-drag-handle" title="드래그하여 순서 변경">⠿</div>
-  <div class="routine-card" id="card3" data-status="scheduled">
-    <div class="bulk-check" onclick="toggleBulkCheck(this)"><span>✓</span></div>
-    <div class="swipe-wrapper"><div class="swipe-bg">삭제</div><div class="swipe-inner">
-    <div class="card-top"><div class="card-meta"><span class="priority-num">3</span><span class="status-badge scheduled">대기 중</span><span class="type-badge">매주</span><span class="type-badge" style="background:#fef3c7;color:#92400e">복합 작업</span></div><button class="card-toggle on" onclick="this.classList.toggle('on')"></button></div>
-    <div class="card-body" onclick="toggleActions('card3')">
       <div class="schedule-row"><div class="schedule-info"><div class="day-pills"><span class="day-pill active">일</span><span class="day-pill">월</span><span class="day-pill">화</span><span class="day-pill">수</span><span class="day-pill">목</span><span class="day-pill">금</span><span class="day-pill">토</span></div></div><div class="schedule-info"><div class="time-range">04:00 <span style="color:#9ca3af">~</span></div></div></div>
-      <div class="action-summary"><span class="summary-text"><strong>재시작, WOL</strong> <span class="compact-target">MAC-Mini</span></span><span class="count-badge">2건</span><span class="chevron">▼</span></div>
-      <div class="action-detail"><div class="compact-list"><div class="compact-item"><span class="compact-dot" style="background:var(--primary)"></span>재시작<span class="compact-action">실행</span></div><div class="compact-item"><span class="compact-dot" style="background:var(--primary)"></span>WOL<span class="compact-target">MAC-Mini</span><span class="compact-action">실행</span></div></div></div>
+      <div class="action-summary"><span class="summary-text"><strong>재시작 실행</strong></span><span class="count-badge">1건</span><span class="chevron">▼</span></div>
+      <div class="action-detail"><div class="compact-list"><div class="compact-item"><span class="compact-dot" style="background:var(--primary)"></span>재시작<span class="compact-action">실행</span></div></div></div>
     </div>
-    <div class="card-footer"><span>다음 실행: 일요일 04:00</span><div class="card-footer-actions"><button class="edit-btn" onclick="openModal('edit',3)">수정</button></div></div>
+    <div class="card-footer"><span>다음 실행: 일요일 04:00</span></div>
     </div></div>
   </div>
   </div>
 
   <div class="routine-card-wrap" draggable="true">
   <div class="outer-drag-handle" title="드래그하여 순서 변경">⠿</div>
-  <div class="routine-card" id="card4" data-status="scheduled">
+  <div class="routine-card" id="card2" data-status="running">
     <div class="bulk-check" onclick="toggleBulkCheck(this)"><span>✓</span></div>
     <div class="swipe-wrapper"><div class="swipe-bg">삭제</div><div class="swipe-inner">
-    <div class="card-top"><div class="card-meta"><span class="priority-num">4</span><span class="status-badge scheduled">대기 중</span><span class="type-badge">날짜/시간</span><span class="type-badge" style="background:#fef3c7;color:#92400e">복합 작업</span></div><button class="card-toggle on" onclick="this.classList.toggle('on')"></button></div>
-    <div class="card-body" onclick="toggleActions('card4')">
+    <div class="card-top"><div class="card-meta"><span class="priority-num">2</span><span class="status-badge running">실행 중</span><span class="type-badge">날짜/시간</span></div><button class="card-toggle on" onclick="this.classList.toggle('on')"></button></div>
+    <div class="card-body" onclick="toggleActions('card2')">
       <div class="schedule-row"><div class="schedule-info"><div class="time-range" style="font-weight:600">2026-02-26 &nbsp; 08:00 부터</div></div></div>
-      <div class="action-summary"><span class="summary-text"><strong>PPTP 서버, L2TP 서버 활성화</strong></span><span class="count-badge">2건</span><span class="chevron">▼</span></div>
-      <div class="action-detail"><div class="compact-list"><div class="compact-item"><span class="compact-dot" style="background:var(--primary)"></span>PPTP 서버<span class="compact-action">활성화</span></div><div class="compact-item"><span class="compact-dot" style="background:var(--primary)"></span>L2TP 서버<span class="compact-action">활성화</span></div></div></div>
+      <div class="action-summary"><span class="summary-text"><strong>PPTP 서버 활성화</strong>, <strong>L2TP 서버 활성화</strong> 외 2건</span><span class="count-badge">4건</span><span class="chevron">▼</span></div>
+      <div class="action-detail"><div class="compact-list"><div class="compact-item"><span class="compact-dot" style="background:var(--primary)"></span>PPTP 서버<span class="compact-action">활성화</span></div><div class="compact-item"><span class="compact-dot" style="background:var(--primary)"></span>L2TP 서버<span class="compact-action">활성화</span></div><div class="compact-item"><span class="compact-dot" style="background:#c9cdd4"></span>WireGuard 서버<span class="compact-action">활성화</span></div><div class="compact-item"><span class="compact-dot" style="background:#c9cdd4"></span>게이밍 VPN<span class="compact-action">활성화</span></div></div></div>
     </div>
-    <div class="card-footer"><span>2/26 08:00부터 계속 실행</span><div class="card-footer-actions"><button class="edit-btn" onclick="openModal('edit',4)">수정</button></div></div>
+    <div class="card-footer"><span>2/26 08:00부터 계속 실행</span></div>
     </div></div>
   </div>
   </div>
 
   <div class="routine-card-wrap" draggable="true">
   <div class="outer-drag-handle" title="드래그하여 순서 변경">⠿</div>
-  <div class="routine-card" id="card5" data-status="oneshot">
+  <div class="routine-card" id="card4" data-status="oneshot">
     <div class="bulk-check" onclick="toggleBulkCheck(this)"><span>✓</span></div>
     <div class="swipe-wrapper"><div class="swipe-bg">삭제</div><div class="swipe-inner">
-    <div class="card-top"><div class="card-meta"><span class="priority-num">5</span><span class="status-badge oneshot">1회 실행</span><span class="type-badge">날짜/시간</span></div><button class="card-toggle on" onclick="this.classList.toggle('on')"></button></div>
+    <div class="card-top"><div class="card-meta"><span class="priority-num">3</span><span class="status-badge oneshot">1회 실행</span><span class="type-badge">날짜/시간</span></div><button class="card-toggle on" onclick="this.classList.toggle('on')"></button></div>
+    <div class="card-body" onclick="toggleActions('card4')">
+      <div class="schedule-row"><div class="schedule-info"><div class="time-range" style="font-weight:600">2026-02-27 &nbsp; 03:00</div></div></div>
+      <div class="action-summary"><span class="summary-text"><strong>펌웨어 업그레이드 실행</strong></span><span class="count-badge">1건</span><span class="chevron">▼</span></div>
+      <div class="action-detail"><div class="compact-list"><div class="compact-item"><span class="compact-dot" style="background:var(--primary)"></span>펌웨어 업그레이드<span class="compact-action">실행</span></div></div></div>
+    </div>
+    <div class="card-footer"><span>2/27 03:00 실행 후 자동 삭제</span></div>
+    </div></div>
+  </div>
+  </div>
+
+  <div class="routine-card-wrap" draggable="true">
+  <div class="outer-drag-handle" title="드래그하여 순서 변경">⠿</div>
+  <div class="routine-card" id="card5" data-status="scheduled">
+    <div class="bulk-check" onclick="toggleBulkCheck(this)"><span>✓</span></div>
+    <div class="swipe-wrapper"><div class="swipe-bg">삭제</div><div class="swipe-inner">
+    <div class="card-top"><div class="card-meta"><span class="priority-num">4</span><span class="status-badge scheduled">대기 중</span><span class="type-badge">매월</span></div><button class="card-toggle on" onclick="this.classList.toggle('on')"></button></div>
     <div class="card-body" onclick="toggleActions('card5')">
-      <div class="schedule-row"><div class="schedule-info"><div class="time-range" style="font-weight:600">2026-02-25 &nbsp; 23:00</div></div></div>
-      <div class="action-summary"><span class="summary-text"><strong>WiFi</strong> <span class="compact-target">Wireless5G</span> <strong>비활성화</strong></span><span class="count-badge">1건</span><span class="chevron">▼</span></div>
-      <div class="action-detail"><div class="compact-list"><div class="compact-item"><span class="compact-dot" style="background:var(--primary)"></span>WiFi<span class="compact-target">Wireless5G</span><span class="compact-action">비활성화</span></div></div></div>
+      <div class="schedule-row"><div class="schedule-info"><div class="time-range">매월 1, 10, 20일 &nbsp; 05:00</div></div></div>
+      <div class="action-summary"><span class="summary-text"><strong>재시작 실행</strong></span><span class="count-badge">1건</span><span class="chevron">▼</span></div>
+      <div class="action-detail"><div class="compact-list"><div class="compact-item"><span class="compact-dot" style="background:var(--primary)"></span>재시작<span class="compact-action">실행</span></div></div></div>
     </div>
-    <div class="card-footer"><span>오늘 23:00 실행 후 자동 삭제</span><div class="card-footer-actions"><button class="edit-btn" onclick="openModal('edit',5)">수정</button></div></div>
+    <div class="card-footer"><span>다음 실행: 3/1 05:00</span></div>
     </div></div>
   </div>
   </div>
 
   <div class="routine-card-wrap" draggable="true">
   <div class="outer-drag-handle" title="드래그하여 순서 변경">⠿</div>
-  <div class="routine-card disabled-svc" id="card6" data-status="scheduled">
+  <div class="routine-card disabled-svc" id="card3" data-status="scheduled">
     <div class="bulk-check" onclick="toggleBulkCheck(this)"><span>✓</span></div>
     <div class="swipe-wrapper"><div class="swipe-bg">삭제</div><div class="swipe-inner">
-    <div class="card-top"><div class="card-meta"><span class="priority-num">6</span><span class="status-badge scheduled">대기 중</span><span class="type-badge">매주</span></div><button class="card-toggle" onclick="this.classList.toggle('on')"></button></div>
+    <div class="card-top"><div class="card-meta"><span class="priority-num">5</span><span class="status-badge scheduled">대기 중</span><span class="type-badge">매주</span></div><button class="card-toggle" onclick="this.classList.toggle('on')"></button></div>
     <div class="svc-warn"><span class="svc-warn-dot"></span>윈도우 파일공유: USB 미연결</div>
-    <div class="card-body" onclick="toggleActions('card6')">
+    <div class="card-body" onclick="toggleActions('card3')">
       <div class="schedule-row"><div class="schedule-info"><div class="day-pills"><span class="day-pill">일</span><span class="day-pill active">월</span><span class="day-pill active">화</span><span class="day-pill active">수</span><span class="day-pill active">목</span><span class="day-pill active">금</span><span class="day-pill">토</span></div></div><div class="schedule-info"><div class="time-range">08:00 <span style="color:#9ca3af">~</span> 22:00</div></div></div>
       <div class="action-summary"><span class="summary-text"><strong>윈도우 파일공유 활성화</strong></span><span class="count-badge">1건</span><span class="chevron">▼</span></div>
       <div class="action-detail"><div class="compact-list"><div class="compact-item"><span class="compact-dot" style="background:#c9cdd4"></span>윈도우 파일공유<span class="compact-action">활성화</span></div></div></div>
     </div>
-    <div class="card-footer"><span>서비스 사용 불가로 실행 보류</span><div class="card-footer-actions"><button class="edit-btn" onclick="openModal('edit',6)">수정</button></div></div>
+    <div class="card-footer"><span>서비스 사용 불가로 실행 보류</span></div>
     </div></div>
   </div>
   </div>
@@ -391,7 +401,7 @@
 
 <div class="overlay" id="modal" onclick="if(event.target===this)closeModal()">
   <div class="modal">
-    <div class="modal-header"><h2 id="modalTitle">루틴 추가</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="modal-header"><h2 id="modalTitle">스케줄러 추가</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
     <div class="modal-body">
       <div class="modal-grid">
         <div>
@@ -460,21 +470,70 @@
 </div>
 
 <script>
+var SVG_DEL='<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M14.5 3V4H20V5.7H19V19C19 20.1 18.1 21 17 21H7C5.9 21 5 20.1 5 19V5.7H4V4H9.5V3H14.5ZM6.7 19.3H17.3V5.7H6.7V19.3ZM9 9H10.7V16H9V9ZM15 9H13.3V16H15V9Z" fill="currentColor"/></svg>';
+var SVG_DEL_W='<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M14.5 3V4H20V5.7H19V19C19 20.1 18.1 21 17 21H7C5.9 21 5 20.1 5 19V5.7H4V4H9.5V3H14.5ZM6.7 19.3H17.3V5.7H6.7V19.3ZM9 9H10.7V16H9V9ZM15 9H13.3V16H15V9Z" fill="#fff"/></svg>';
+var SVG_EDIT='<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M16.4124 5.75744C16.8218 5.37069 17.4904 5.37069 17.8997 5.75744L19.133 6.92272C19.5402 7.30268 19.5455 7.9431 19.1366 8.32457L17.6997 9.68213L14.9765 7.10931L16.4124 5.75744ZM13.8764 8.14506L13.826 8.19247L4.5531 16.962V19.5326H7.2737L16.6014 10.7197L13.8764 8.14506ZM18.9979 4.71984C17.9822 3.76018 16.3305 3.76005 15.3146 4.71947L12.7285 7.15421L3 16.3546V21H7.91701L20.2296 9.36705C21.2568 8.40694 21.2568 6.84361 20.2295 5.8835L18.9979 4.71984Z" fill="currentColor"/></svg>';
+
+var $del=document.getElementById('btnDel');
+var $edit=document.getElementById('btnEdit');
+var $add=document.getElementById('btnAdd');
+
+/* ===== 헤더 버튼 모드 ===== */
+function setDefaultMode(){
+  $del.style.display='';$del.className='hdr-btn';$del.innerHTML=SVG_DEL;$del.onclick=startDeleteMode;
+  $edit.style.display='';$edit.className='hdr-btn';$edit.innerHTML=SVG_EDIT;$edit.onclick=startEditMode;
+  $add.style.display='';$add.className='hdr-btn';$add.innerHTML='＋';$add.style.fontSize='18px';$add.onclick=function(){openModal('add')};
+}
+
+function startDeleteMode(){
+  bulkMode=true;
+  $del.innerHTML='✕';$del.onclick=cancelDeleteMode;
+  $edit.style.display='none';
+  $add.className='hdr-btn green disabled';$add.innerHTML=SVG_DEL_W;$add.onclick=confirmBulkDelete;
+  document.querySelectorAll('.routine-card').forEach(function(c){c.classList.add('bulk-mode');c.setAttribute('draggable','false')});
+  document.querySelectorAll('.outer-drag-handle').forEach(function(h){h.style.visibility='hidden'});
+}
+
+function cancelDeleteMode(){
+  bulkMode=false;
+  setDefaultMode();
+  document.querySelectorAll('.routine-card').forEach(function(c){c.classList.remove('bulk-mode','bulk-selected');c.setAttribute('draggable','true');var ck=c.querySelector('.bulk-check');if(ck)ck.classList.remove('checked')});
+  document.querySelectorAll('.outer-drag-handle').forEach(function(h){h.style.visibility=''});
+}
+
+var editMode=false;
+function startEditMode(){
+  editMode=true;
+  $del.style.display='none';
+  $edit.innerHTML='✕';$edit.onclick=function(){cancelEditMode()};
+  $add.style.display='none';
+  document.querySelectorAll('.routine-card').forEach(function(c){c.classList.add('edit-mode')});
+  document.querySelectorAll('.routine-card-wrap').forEach(function(w){w.setAttribute('draggable','false')});
+  document.querySelectorAll('.outer-drag-handle').forEach(function(h){h.style.visibility='hidden'});
+}
+function cancelEditMode(){
+  editMode=false;
+  setDefaultMode();
+  document.querySelectorAll('.routine-card').forEach(function(c){c.classList.remove('edit-mode')});
+  document.querySelectorAll('.routine-card-wrap').forEach(function(w){w.setAttribute('draggable','true')});
+  document.querySelectorAll('.outer-drag-handle').forEach(function(h){h.style.visibility=''});
+}
+
+setDefaultMode();
+
+/* ===== 편집 아이콘 삽입 ===== */
+var SVG_EDIT_SMALL='<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M16.4124 5.75744C16.8218 5.37069 17.4904 5.37069 17.8997 5.75744L19.133 6.92272C19.5402 7.30268 19.5455 7.9431 19.1366 8.32457L17.6997 9.68213L14.9765 7.10931L16.4124 5.75744ZM13.8764 8.14506L13.826 8.19247L4.5531 16.962V19.5326H7.2737L16.6014 10.7197L13.8764 8.14506ZM18.9979 4.71984C17.9822 3.76018 16.3305 3.76005 15.3146 4.71947L12.7285 7.15421L3 16.3546V21H7.91701L20.2296 9.36705C21.2568 8.40694 21.2568 6.84361 20.2295 5.8835L18.9979 4.71984Z" fill="currentColor"/></svg>';
+document.querySelectorAll('.routine-card').forEach(function(c){var ei=document.createElement('div');ei.className='edit-icon';ei.innerHTML=SVG_EDIT_SMALL;c.insertBefore(ei,c.firstChild)});
+
+/* ===== 서비스 목록 ===== */
 var svcList=[
   {key:'reboot',name:'재시작',actions:['실행'],targets:[],group:'시스템',status:'ready',statusText:'항상 사용 가능'},
   {key:'fw',name:'펌웨어 업그레이드',actions:['실행'],targets:[],group:'시스템',status:'ready',statusText:'최신 버전 확인됨'},
-  {key:'firewall',name:'방화벽',actions:['활성화','비활성화'],targets:[],hasTarget:true,group:'시스템',status:'ready',statusText:'규칙 설정됨'},
-  {key:'wol',name:'WOL',actions:['실행'],targets:['MAC-Mini'],hasTarget:true,group:'시스템',status:'ready',statusText:'1개 장치 등록'},
   {key:'syslog_mail',name:'시스템 로그 메일 전송',actions:['실행'],targets:[],group:'시스템',status:'unavail',statusText:'메일 서버 미설정'},
-  {key:'wifi',name:'WiFi',actions:['활성화','비활성화'],targets:['iptime','Wireless-Mesh','BE19000QCA','Wireless5G'],group:'네트워크',status:'ready',statusText:'4개 SSID 활성'},
   {key:'pptp',name:'PPTP 서버',actions:['활성화','비활성화'],targets:[],group:'VPN 서버',status:'ready',statusText:'설정 완료'},
   {key:'l2tp',name:'L2TP 서버',actions:['활성화','비활성화'],targets:[],group:'VPN 서버',status:'ready',statusText:'설정 완료'},
   {key:'wg_server',name:'WireGuard 서버',actions:['활성화','비활성화'],targets:[],group:'VPN 서버',status:'unavail',statusText:'피어 미설정'},
   {key:'gaming_vpn',name:'게이밍 VPN',actions:['활성화','비활성화'],targets:[],group:'VPN 서버',status:'unavail',statusText:'미지원 모델'},
-  {key:'pptp_client',name:'PPTP 클라이언트',actions:['활성화','비활성화'],targets:['US'],group:'VPN 클라이언트',status:'ready',statusText:'1개 프로필'},
-  {key:'l2tp_client',name:'L2TP 클라이언트',actions:['활성화','비활성화'],targets:[],group:'VPN 클라이언트',status:'unavail',statusText:'프로필 미등록'},
-  {key:'openvpn_client',name:'OpenVPN 클라이언트',actions:['활성화','비활성화'],targets:[],group:'VPN 클라이언트',status:'unavail',statusText:'인증서 미설정'},
-  {key:'wg_client',name:'WireGuard 클라이언트',actions:['활성화','비활성화'],targets:['1405집','7회사'],group:'VPN 클라이언트',status:'ready',statusText:'2개 피어'},
   {key:'usb_ftp',name:'FTP',actions:['활성화','비활성화'],targets:[],group:'USB 서비스',status:'unavail',statusText:'USB 미연결'},
   {key:'usb_smb',name:'윈도우 파일공유',actions:['활성화','비활성화'],targets:[],group:'USB 서비스',status:'unavail',statusText:'USB 미연결'},
   {key:'usb_dlna',name:'미디어 서버',actions:['활성화','비활성화'],targets:[],group:'USB 서비스',status:'unavail',statusText:'USB 미연결'},
@@ -484,24 +543,19 @@ var svcList=[
   {key:'usb_url',name:'URL 서비스',actions:['활성화','비활성화'],targets:[],group:'USB 서비스',status:'unavail',statusText:'미설정'}
 ];
 var svcNames={},svcConfig={};
-svcList.forEach(function(s){svcNames[s.key]=s.name;svcConfig[s.key]={actions:s.actions,targets:s.targets,hasTarget:!!s.hasTarget||s.targets.length>0,status:s.status,statusText:s.statusText}});
+svcList.forEach(function(s){svcNames[s.key]=s.name;svcConfig[s.key]={actions:s.actions,targets:s.targets,hasTarget:s.targets.length>0,status:s.status,statusText:s.statusText}});
 
 var routineData=[
-  {id:1,whenType:'schedule',repeatMode:'weekly',days:[1,2,3,4,5],dates:[],timeStart:'09:00',timeEnd:'18:00',actions:[{service:'wg_client',action:'활성화',target:'7회사'}],oneshot:false,timing:'정시에',datetime:''},
-  {id:2,whenType:'schedule',repeatMode:'weekly',days:[0,6],dates:[],timeStart:'00:00',timeEnd:'23:59',actions:[{service:'wg_client',action:'활성화',target:'1405집'}],oneshot:false,timing:'정시에',datetime:''},
-  {id:3,whenType:'schedule',repeatMode:'weekly',days:[0],dates:[],timeStart:'04:00',timeEnd:'',_allDay:false,actions:[{service:'reboot',action:'실행',target:''},{service:'wol',action:'실행',target:'MAC-Mini'}],oneshot:false,timing:'정시에',datetime:''},
-  {id:4,whenType:'datetime',repeatMode:'weekly',days:[],dates:[],timeStart:'',timeEnd:'',actions:[{service:'pptp',action:'활성화',target:''},{service:'l2tp',action:'활성화',target:''}],oneshot:false,timing:'부터',datetime:'2026-02-26T08:00'},
-  {id:5,whenType:'datetime',repeatMode:'weekly',days:[],dates:[],timeStart:'',timeEnd:'',actions:[{service:'wifi',action:'비활성화',target:'Wireless5G'}],oneshot:true,timing:'정시에',datetime:'2026-02-25T23:00'},
-  {id:6,whenType:'schedule',repeatMode:'weekly',days:[1,2,3,4,5],dates:[],timeStart:'08:00',timeEnd:'22:00',actions:[{service:'usb_smb',action:'활성화',target:''}],oneshot:false,timing:'정시에',datetime:''}
+  {id:1,whenType:'schedule',repeatMode:'weekly',days:[0],dates:[],timeStart:'04:00',timeEnd:'',_allDay:false,actions:[{service:'reboot',action:'실행',target:''}],oneshot:false,timing:'정시에',datetime:''},
+  {id:2,whenType:'datetime',repeatMode:'weekly',days:[],dates:[],timeStart:'',timeEnd:'',actions:[{service:'pptp',action:'활성화',target:''},{service:'l2tp',action:'활성화',target:''},{service:'wg_server',action:'활성화',target:''},{service:'gaming_vpn',action:'활성화',target:''}],oneshot:false,timing:'부터',datetime:'2026-02-26T08:00'},
+  {id:3,whenType:'schedule',repeatMode:'weekly',days:[1,2,3,4,5],dates:[],timeStart:'08:00',timeEnd:'22:00',actions:[{service:'usb_smb',action:'활성화',target:''}],oneshot:false,timing:'정시에',datetime:''},
+  {id:4,whenType:'datetime',repeatMode:'weekly',days:[],dates:[],timeStart:'',timeEnd:'',actions:[{service:'fw',action:'실행',target:''}],oneshot:true,timing:'정시에',datetime:'2026-02-27T03:00'},
+  {id:5,whenType:'schedule',repeatMode:'monthly',days:[],dates:['1','10','20'],timeStart:'05:00',timeEnd:'',_allDay:false,actions:[{service:'reboot',action:'실행',target:''}],oneshot:false,timing:'정시에',datetime:''}
 ];
 var dayLabels=['일','월','화','수','목','금','토'];
 var curRepeatMode='weekly';
 
-function buildDateGrid(){
-  var g=document.getElementById('dateGrid');g.innerHTML='';
-  for(var d=1;d<=31;d++){var b=document.createElement('button');b.className='date-cell';b.textContent=d;b.dataset.date=d;b.onclick=function(){this.classList.toggle('selected');syncDatePresetHighlight();updateSummary()};g.appendChild(b)}
-  var last=document.createElement('button');last.className='date-cell last-day';last.textContent='말일';last.dataset.date='last';last.onclick=function(){this.classList.toggle('selected');syncDatePresetHighlight();updateSummary()};g.appendChild(last);
-}
+function buildDateGrid(){var g=document.getElementById('dateGrid');g.innerHTML='';for(var d=1;d<=31;d++){var b=document.createElement('button');b.className='date-cell';b.textContent=d;b.dataset.date=d;b.onclick=function(){this.classList.toggle('selected');syncDatePresetHighlight();updateSummary()};g.appendChild(b)}var last=document.createElement('button');last.className='date-cell last-day';last.textContent='말일';last.dataset.date='last';last.onclick=function(){this.classList.toggle('selected');syncDatePresetHighlight();updateSummary()};g.appendChild(last)}
 buildDateGrid();
 function getSelectedDates(){var sel=[];document.querySelectorAll('#dateGrid .date-cell.selected').forEach(function(c){sel.push(c.dataset.date)});return sel}
 function setSelectedDates(arr){document.querySelectorAll('#dateGrid .date-cell').forEach(function(c){c.classList.toggle('selected',arr.includes(c.dataset.date)||arr.includes(parseInt(c.dataset.date)))})}
@@ -548,9 +602,12 @@ function updateSummary(){
   }
 }
 
-function toggleActions(id){var c=document.getElementById(id),d=c.querySelector('.action-detail'),ch=c.querySelector('.chevron');d.classList.toggle('open');ch.classList.toggle('open')}
+function toggleActions(id){
+  if(editMode){var idMap={card1:1,card2:2,card3:3,card4:4,card5:5};var rid=idMap[id];if(rid){openModal('edit',rid);cancelEditMode()}return}
+  var c=document.getElementById(id),d=c.querySelector('.action-detail'),ch=c.querySelector('.chevron');d.classList.toggle('open');ch.classList.toggle('open')}
 function filterCards(status,chip){document.querySelectorAll('.stat-chip').forEach(function(c){c.classList.remove('active')});chip.classList.add('active');var visible=0;document.querySelectorAll('.routine-card-wrap').forEach(function(wrap){var card=wrap.querySelector('.routine-card');if(!card)return;var show=status==='all'||card.dataset.status===status;wrap.style.display=show?'':'none';if(show)visible++});document.getElementById('emptyState').classList.toggle('show',visible===0);updatePriorityNumbers()}
 
+/* ===== 드래그 ===== */
 (function(){
   var list=document.getElementById('routineList');var dragEl=null;
   list.addEventListener('dragstart',function(e){var wrap=e.target.closest('.routine-card-wrap');if(!wrap||bulkMode)return;dragEl=wrap;setTimeout(function(){dragEl.classList.add('dragging')},0);e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain','')});
@@ -561,23 +618,19 @@ function filterCards(status,chip){document.querySelectorAll('.stat-chip').forEac
 })();
 function updatePriorityNumbers(){var wraps=document.querySelectorAll('#routineList .routine-card-wrap');var n=1;wraps.forEach(function(w){var c=w.querySelector('.routine-card');if(!c||w.style.display==='none'||c.style.display==='none')return;var num=c.querySelector('.priority-num');if(num)num.textContent=n++})}
 
+/* ===== 삭제 모드 ===== */
 var bulkMode=false;
-function toggleBulkDelete(){if(bulkMode){var cards=document.querySelectorAll('.routine-card.bulk-selected');if(cards.length>0)cards.forEach(function(c){var wrap=c.closest('.routine-card-wrap');if(wrap){wrap.style.transition='all .3s';wrap.style.opacity='0';wrap.style.maxHeight='0';wrap.style.marginBottom='0';wrap.style.overflow='hidden';setTimeout(function(){wrap.remove();updatePriorityNumbers()},300)}});exitBulkMode();return}bulkMode=true;var btn=document.getElementById('bulkBtn');btn.textContent='취소';document.querySelector('.btn-primary').style.display='none';var delBtn=document.createElement('button');delBtn.className='btn';delBtn.id='bulkDelBtn';delBtn.style.cssText='background:var(--primary);color:#fff;padding:8px 16px;border-radius:var(--rs);opacity:.4;cursor:not-allowed';delBtn.textContent='삭제';delBtn.disabled=true;delBtn.onclick=function(){confirmBulkDelete()};btn.parentElement.insertBefore(delBtn,document.querySelector('.btn-primary'));document.querySelectorAll('.routine-card').forEach(function(c){c.classList.add('bulk-mode');c.setAttribute('draggable','false')});document.querySelectorAll('.outer-drag-handle').forEach(function(h){h.style.visibility='hidden'})}
-function exitBulkMode(){bulkMode=false;document.getElementById('bulkBtn').textContent='삭제';document.querySelector('.btn-primary').style.display='';var d=document.getElementById('bulkDelBtn');if(d)d.remove();document.querySelectorAll('.routine-card').forEach(function(c){c.classList.remove('bulk-mode','bulk-selected');c.setAttribute('draggable','true');var ck=c.querySelector('.bulk-check');if(ck)ck.classList.remove('checked')});document.querySelectorAll('.outer-drag-handle').forEach(function(h){h.style.visibility=''})}
 function toggleBulkCheck(el){el.classList.toggle('checked');el.closest('.routine-card').classList.toggle('bulk-selected');updateBulkCount()}
-function updateBulkCount(){var n=document.querySelectorAll('.bulk-check.checked').length;var d=document.getElementById('bulkDelBtn');if(d){d.disabled=!n;d.style.opacity=n?'1':'.4';d.style.cursor=n?'pointer':'not-allowed';d.textContent=n?'삭제 ('+n+')':'삭제'}}
-function confirmBulkDelete(){document.querySelectorAll('.routine-card.bulk-selected').forEach(function(c){var wrap=c.closest('.routine-card-wrap');if(wrap){wrap.style.transition='all .3s';wrap.style.opacity='0';wrap.style.maxHeight='0';wrap.style.marginBottom='0';wrap.style.overflow='hidden';setTimeout(function(){wrap.remove();checkEmpty();updatePriorityNumbers()},300)}});setTimeout(exitBulkMode,350)}
+function updateBulkCount(){var n=document.querySelectorAll('.bulk-check.checked').length;if(bulkMode){$add.className=n?'hdr-btn green':'hdr-btn green disabled'}}
+function confirmBulkDelete(){document.querySelectorAll('.routine-card.bulk-selected').forEach(function(c){var wrap=c.closest('.routine-card-wrap');if(wrap){wrap.style.transition='all .3s';wrap.style.opacity='0';wrap.style.maxHeight='0';wrap.style.marginBottom='0';wrap.style.overflow='hidden';setTimeout(function(){wrap.remove();checkEmpty();updatePriorityNumbers()},300)}});setTimeout(cancelDeleteMode,350)}
 function updateStatCounts(){
   var all=0,running=0,scheduled=0,oneshot=0;
-  document.querySelectorAll('.routine-card-wrap').forEach(function(w){
-    if(w.style.display==='none'||w.style.opacity==='0')return;
-    var c=w.querySelector('.routine-card');if(!c)return;all++;
-    var st=c.dataset.status;if(st==='running')running++;else if(st==='scheduled')scheduled++;else if(st==='oneshot')oneshot++;
-  });
+  document.querySelectorAll('.routine-card-wrap').forEach(function(w){if(w.style.display==='none'||w.style.opacity==='0')return;var c=w.querySelector('.routine-card');if(!c)return;all++;var st=c.dataset.status;if(st==='running')running++;else if(st==='scheduled')scheduled++;else if(st==='oneshot')oneshot++});
   var chips=document.querySelectorAll('.stat-chip .num');chips[0].textContent=all;chips[1].textContent=running;chips[2].textContent=scheduled;chips[3].textContent=oneshot;
 }
 function checkEmpty(){var v=0;document.querySelectorAll('.routine-card-wrap').forEach(function(w){if(w.style.display!=='none'&&w.style.opacity!=='0')v++});document.getElementById('emptyState').classList.toggle('show',!v);updateStatCounts()}
 
+/* ===== 모달: 서비스 선택 ===== */
 var openDropdownEl=null;
 document.addEventListener('click',function(e){if(openDropdownEl&&!openDropdownEl.closest('.svc-select-wrap').contains(e.target))closeSvcDropdown(openDropdownEl)});
 function closeSvcDropdown(dd){if(!dd)return;dd.classList.remove('show');var trigger=dd.previousElementSibling;if(trigger)trigger.classList.remove('open');if(openDropdownEl===dd)openDropdownEl=null}
@@ -586,14 +639,14 @@ function selectSvcItem(item,wrap){
   var key=item.dataset.key;wrap.dataset.selectedKey=key;
   var trigger=wrap.querySelector('.svc-select-trigger');var svc=svcList.find(function(s){return s.key===key});
   var dotColor=svc.status==='ready'?'#22c55e':'#d1d5db';
-  trigger.innerHTML='<span class="trigger-dot" style="background:'+dotColor+'"></span><span class="trigger-text">'+svc.name+'</span><span class="trigger-arrow">▼</span>';
+  trigger.innerHTML='<span class="trigger-dot" style="background:'+dotColor+'"></span><span class="trigger-text">'+svc.name+'</span><span class="trigger-arrow">›</span>';
   wrap.querySelectorAll('.svc-dropdown-item').forEach(function(i){i.classList.remove('selected')});item.classList.add('selected');
   closeSvcDropdown(wrap.querySelector('.svc-dropdown'));onSvcCustom(wrap,key);
 }
 function buildSvcCustomSelect(selected){
   var h='<div class="svc-select-wrap" data-selected-key="'+(selected||'')+'">';
-  if(selected){var svc=svcList.find(function(s){return s.key===selected});var dotColor=svc.status==='ready'?'#22c55e':'#d1d5db';h+='<div class="svc-select-trigger" onclick="toggleSvcDropdown(this)"><span class="trigger-dot" style="background:'+dotColor+'"></span><span class="trigger-text">'+svc.name+'</span><span class="trigger-arrow">▼</span></div>'}
-  else{h+='<div class="svc-select-trigger" onclick="toggleSvcDropdown(this)"><span class="trigger-text trigger-placeholder">서비스 선택...</span><span class="trigger-arrow">▼</span></div>'}
+  if(selected){var svc=svcList.find(function(s){return s.key===selected});var dotColor=svc.status==='ready'?'#22c55e':'#d1d5db';h+='<div class="svc-select-trigger" onclick="toggleSvcDropdown(this)"><span class="trigger-dot" style="background:'+dotColor+'"></span><span class="trigger-text">'+svc.name+'</span><span class="trigger-arrow">›</span></div>'}
+  else{h+='<div class="svc-select-trigger" onclick="toggleSvcDropdown(this)"><span class="trigger-text trigger-placeholder">서비스 선택...</span><span class="trigger-arrow">›</span></div>'}
   h+='<div class="svc-dropdown">';
   var groups=[],groupMap={};svcList.forEach(function(s){var g=s.group||'기타';if(!groupMap[g]){groupMap[g]=[];groups.push(g)}groupMap[g].push(s)});
   groups.forEach(function(g){
@@ -604,11 +657,7 @@ function buildSvcCustomSelect(selected){
     });h+='</div>';
   });h+='</div></div>';return h;
 }
-function buildSvcStatusRow(svcKey){
-  if(!svcKey)return '';var svc=svcList.find(function(s){return s.key===svcKey});
-  if(!svc||svc.status==='ready')return '';
-  return '<div class="svc-status-row unavail"><span class="svc-status-dot"></span><span class="svc-status-label">'+svc.statusText+'</span><span class="svc-status-tag">사용 불가</span></div>';
-}
+function buildSvcStatusRow(svcKey){if(!svcKey)return '';var svc=svcList.find(function(s){return s.key===svcKey});if(!svc||svc.status==='ready')return '';return '<div class="svc-status-row unavail"><span class="svc-status-dot"></span><span class="svc-status-label">'+svc.statusText+'</span><span class="svc-status-tag">사용 불가</span></div>'}
 function buildActionItem(a){
   var cfg=a.service?svcConfig[a.service]:null;var hasTargets=cfg&&cfg.hasTarget;
   var svcInfo=a.service?svcList.find(function(s){return s.key===a.service}):null;var groupLabel=svcInfo?svcInfo.group:'';
@@ -629,14 +678,13 @@ function onSvcCustom(wrap,svc){
   var statusWrap=item.querySelector('.svc-status-wrap');if(statusWrap)statusWrap.innerHTML=buildSvcStatusRow(svc);
   var hdr=item.querySelector('.action-item-header');var oldBadge=hdr.querySelector('.group-badge');if(oldBadge)oldBadge.remove();
   if(svc){var info=svcList.find(function(s){return s.key===svc});if(info&&info.group){var badge=document.createElement('span');badge.className='group-badge';badge.style.cssText='font-size:10px;font-weight:600;color:var(--ts);background:#f3f4f6;padding:2px 8px;border-radius:4px;margin-right:auto;margin-left:8px';badge.textContent=info.group;hdr.insertBefore(badge,hdr.querySelector('.action-remove'))}}
-  if(!cfg)return;
-  var isUnavail=cfg.status==='unavail';
-  var ins=item.querySelector('.svc-status-wrap');
+  if(!cfg)return;var isUnavail=cfg.status==='unavail';var ins=item.querySelector('.svc-status-wrap');
   if(cfg.hasTarget&&!isUnavail){var t='<div class="form-row target-row"><label class="form-label">대상</label><select class="form-select">';if(cfg.targets.length>0)cfg.targets.forEach(function(x){t+='<option>'+x+'</option>'});else t+='<option value="" disabled selected style="color:#9ca3af">등록된 대상 없음</option>';t+='</select></div>';ins.insertAdjacentHTML('afterend',t);ins=ins.nextElementSibling}
   if(!isUnavail){var a='<div class="form-row action-row"><label class="form-label">동작</label><div class="action-btns">';cfg.actions.forEach(function(x,i){a+='<button class="action-type-btn'+(i===0?' selected':'')+'" onclick="selType(this)">'+x+'</button>'});a+='</div></div>';ins.insertAdjacentHTML('afterend',a)}
   enforceOneshotOnly();
 }
 
+/* ===== 모달 ===== */
 function populateModal(r){
   if(r.whenType==='schedule'){document.getElementById('tabSchedule').classList.add('active');document.getElementById('tabDatetime').classList.remove('active');document.getElementById('panelSchedule').style.display='';document.getElementById('panelDatetime').style.display='none'}else{document.getElementById('tabDatetime').classList.add('active');document.getElementById('tabSchedule').classList.remove('active');document.getElementById('panelSchedule').style.display='none';document.getElementById('panelDatetime').style.display=''}
   var rm=r.repeatMode||'weekly';curRepeatMode=rm;
@@ -660,7 +708,7 @@ function populateModal(r){
   syncPresetHighlight();syncDatePresetHighlight();setTimeout(function(){updateSummary();enforceOneshotOnly()},0);
 }
 function openModal(mode,rid){
-  var isEdit=mode==='edit'&&rid;document.getElementById('modalTitle').textContent=isEdit?'루틴 수정':'루틴 추가';document.getElementById('saveBtn').textContent=isEdit?'수정':'저장';
+  var isEdit=mode==='edit'&&rid;document.getElementById('modalTitle').textContent=isEdit?'스케줄러 수정':'스케줄러 추가';document.getElementById('saveBtn').textContent=isEdit?'수정':'저장';
   if(isEdit){var r=routineData.find(function(x){return x.id===rid});if(r)populateModal(r)}
   else populateModal({whenType:'schedule',repeatMode:'weekly',days:[],dates:[],timeStart:'',timeEnd:'',_allDay:false,actions:[{service:'',action:'',target:''}],oneshot:false,timing:'정시에',datetime:''});
   document.getElementById('modal').classList.add('show');document.body.style.overflow='hidden';
@@ -698,14 +746,16 @@ function enforceOneshotOnly(){
   updateSummary();
 }
 
+/* ===== 타임라인 ===== */
 var viewDate=new Date();var dayN=['일','월','화','수','목','금','토'];
 var tlRoutines=[
-  {id:1,label:"WireGuard '7회사'",days:[1,2,3,4,5],start:9,end:18,type:'running',actions:['WireGuard 클라이언트 활성화']},
-  {id:2,label:"WireGuard '1405집'",days:[0,6],start:0,end:24,type:'scheduled',actions:['WireGuard 클라이언트 활성화']},
-  {id:3,label:'재시작/WOL',days:[0],start:4,end:4.25,type:'scheduled',actions:['재시작 실행','WOL MAC-Mini 실행']},
-  {id:4,label:'PPTP+L2TP 서버',fixedDate:'2026-02-26',fixedHour:8,fixedEnd:24,type:'scheduled',actions:['PPTP 서버 활성화','L2TP 서버 활성화']},
-  {id:5,label:'WiFi 5G 비활성화',fixedDate:'2026-02-25',fixedHour:23,type:'oneshot',actions:['WiFi 비활성화']},
+  {id:1,days:[0],start:4,end:4.25,type:'scheduled',actions:['재시작 실행']},
+  {id:2,fixedDate:'2026-02-26',fixedHour:8,fixedEnd:24,type:'running',actions:['PPTP 서버 활성화','L2TP 서버 활성화','WireGuard 서버 활성화','게이밍 VPN 활성화']},
+  {id:3,days:[1,2,3,4,5],start:8,end:22,type:'scheduled',actions:['윈도우 파일공유 활성화']},
+  {id:4,fixedDate:'2026-02-27',fixedHour:3,type:'oneshot',actions:['펌웨어 업그레이드 실행']},
+  {id:5,monthDates:[1,10,20],start:5,end:5.25,type:'scheduled',actions:['재시작 실행']},
 ];
+function makeTlLabel(actions){var names=actions.map(function(a){return a.replace(/ (활성화|비활성화|실행)$/,'')});if(names.length<=2)return names.join(', ');return names[0]+', '+names[1]+' 외 '+(names.length-2)+'건'}
 function fmtD(d){return(d.getMonth()+1)+'/'+String(d.getDate()).padStart(2,'0')+' ('+dayN[d.getDay()]+')'}
 function sameDay(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()}
 function shiftDay(n){viewDate.setDate(viewDate.getDate()+n);renderTl()}
@@ -715,7 +765,7 @@ function renderTl(){
   document.getElementById('tlDateDisp').textContent=fmtD(viewDate);var dow=viewDate.getDay(),isToday=sameDay(viewDate,new Date());var ds=viewDate.getFullYear()+'-'+String(viewDate.getMonth()+1).padStart(2,'0')+'-'+String(viewDate.getDate()).padStart(2,'0');
   var ruler=document.getElementById('tlRuler');ruler.innerHTML='';for(var h=0;h<=24;h+=3){var t=document.createElement('span');t.className='tick';t.style.left=(h/24*100)+'%';t.textContent=String(h).padStart(2,'0');ruler.appendChild(t)}
   var grid=document.getElementById('tlGrid');grid.innerHTML='';for(var h=0;h<=24;h+=3){var l=document.createElement('div');l.className='tl-grid-line';l.style.left=(h/24*100)+'%';grid.appendChild(l)}
-  var bars=[];tlRoutines.forEach(function(r){var show=false;if(r.fixedDate)show=(r.fixedDate===ds);else if(r.days)show=r.days.includes(dow);if(!show)return;var s=r.start||r.fixedHour||0,e=r.fixedEnd||r.end||(r.fixedHour?r.fixedHour+.25:24);bars.push(Object.assign({},r,{s:s,e:e}))});
+  var bars=[];tlRoutines.forEach(function(r){var show=false;if(r.fixedDate)show=(r.fixedDate===ds);else if(r.monthDates)show=r.monthDates.includes(viewDate.getDate());else if(r.days)show=r.days.includes(dow);if(!show)return;var s=r.start||r.fixedHour||0,e=r.fixedEnd||r.end||(r.fixedHour?r.fixedHour+.25:24);bars.push(Object.assign({},r,{s:s,e:e,label:makeTlLabel(r.actions)}))});
   var rows=[];bars.forEach(function(b){var placed=false;for(var ri=0;ri<rows.length;ri++){var ok=true;for(var k=0;k<rows[ri].length;k++){var ob=rows[ri][k];if(!(b.s>=ob.e||b.e<=ob.s)){ok=false;break}}if(ok){rows[ri].push(b);b.row=ri;placed=true;break}}if(!placed){b.row=rows.length;rows.push([b])}});
   var overlaps=[];for(var i=0;i<bars.length;i++)for(var j=i+1;j<bars.length;j++){var os=Math.max(bars[i].s,bars[j].s),oe=Math.min(bars[i].e,bars[j].e);if(os<oe)overlaps.push({s:os,e:oe,bars:[bars[i],bars[j]]})}
   var tracks=document.getElementById('tlTracks');tracks.innerHTML='';var rowH=36;tracks.style.height=(rows.length*rowH+8)+'px';tracks.style.position='relative';
